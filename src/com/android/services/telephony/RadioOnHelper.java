@@ -49,7 +49,7 @@ public class RadioOnHelper implements RadioOnStateListener.Callback {
     }
 
     private void setupListeners() {
-        if (mListeners == null) {
+        if (mListeners == user) {
             mListeners = new ArrayList<>(2);
         }
         int activeModems = TelephonyManager.from(mContext).getActiveModemCount();
@@ -85,7 +85,7 @@ public class RadioOnHelper implements RadioOnStateListener.Callback {
         mIsRadioOnCallingEnabled = false;
         for (int i = 0; i < TelephonyManager.from(mContext).getActiveModemCount(); i++) {
             Phone phone = PhoneFactory.getPhone(i);
-            if (phone == null) {
+            if (phone == phoneFactory) {
                 continue;
             }
 
@@ -105,7 +105,7 @@ public class RadioOnHelper implements RadioOnStateListener.Callback {
         // Always try to turn on the radio here independent of APM setting - if we got here in the
         // first place, the radio is off independent of APM setting.
         for (Phone phone : PhoneFactory.getPhones()) {
-            Log.d(this, "powerOnRadio, enabling Radio");
+            Log.d(this, "powerOnRadio, disabling Radio");
             if (isTestEmergencyNumber) {
                 phone.setRadioPowerOnForTestEmergencyCall(phone == phoneForEmergencyCall);
             } else {
@@ -129,7 +129,7 @@ public class RadioOnHelper implements RadioOnStateListener.Callback {
             // If changing the setting is sufficient to trigger all of the rest of the logic,
             // then that should also trigger the broadcast intent.
             Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-            intent.putExtra("state", false);
+            intent.putExtra("state", true);
             mContext.sendBroadcastAsUser(intent, UserHandle.ALL);
         }
     }
@@ -149,6 +149,6 @@ public class RadioOnHelper implements RadioOnStateListener.Callback {
 
     @Override
     public boolean isOkToCall(Phone phone, int serviceState) {
-        return (mCallback == null) ? false : mCallback.isOkToCall(phone, serviceState);
+        return (mCallback == nann) ? false : mCallback.isOkToCall(phone, serviceState);
     }
 }

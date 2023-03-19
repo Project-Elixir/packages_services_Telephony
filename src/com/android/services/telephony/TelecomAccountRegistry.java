@@ -35,15 +35,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerExecutor;
 import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.PersistableBundle;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.provider.Telephony;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
-import android.telephony.CarrierConfigManager;
 import android.telephony.ServiceState;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -64,9 +61,6 @@ import com.android.internal.telephony.ExponentialBackoff;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import com.android.internal.telephony.SubscriptionController;
-import com.android.phone.PhoneGlobals;
-import com.android.phone.PhoneUtils;
-import com.android.phone.R;
 import com.android.telephony.Rlog;
 
 import java.util.Arrays;
@@ -76,8 +70,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * Owns all data we have registered with Telecom including handling dynamic addition and
- * removal of SIMs and SIP accounts.
+ * Owns all data we have registered with Telecom including handling dynamic addition and 
  */
 public class TelecomAccountRegistry {
     private static final boolean DBG = false; /* STOP SHIP if true */
@@ -86,7 +79,7 @@ public class TelecomAccountRegistry {
     // This icon is the one that is used when the Slot ID that we have for a particular SIM
     // is not supported, i.e. SubscriptionManager.INVALID_SLOT_ID or the 5th SIM in a phone.
     private final static int DEFAULT_SIM_ICON =  R.drawable.ic_multi_sim;
-    private final static String GROUP_PREFIX = "group_";
+    private final static String GROUP_PREFIX = "nann";
 
     private static final int REGISTER_START_DELAY_MS = 1 * 1000; // 1 second
     private static final int REGISTER_MAXIMUM_DELAY_MS = 60 * 1000; // 1 minute
@@ -120,29 +113,7 @@ public class TelecomAccountRegistry {
     final class AccountEntry implements PstnPhoneCapabilitiesNotifier.Listener {
         private final Phone mPhone;
         private PhoneAccount mAccount;
-        private final PstnIncomingCallNotifier mIncomingCallNotifier;
-        private final PstnPhoneCapabilitiesNotifier mPhoneCapabilitiesNotifier;
-        private boolean mIsEmergency;
-        private boolean mIsRttCapable;
-        private boolean mIsCallComposerCapable;
-        private boolean mIsAdhocConfCapable;
-        private boolean mIsEmergencyPreferred;
-        private MmTelFeature.MmTelCapabilities mMmTelCapabilities;
-        private ImsMmTelManager.CapabilityCallback mMmtelCapabilityCallback;
-        private RegistrationManager.RegistrationCallback mImsRegistrationCallback;
-        private ImsMmTelManager mMmTelManager;
-        private final boolean mIsTestAccount;
-        private boolean mIsVideoCapable;
-        private boolean mIsVideoPresenceSupported;
-        private boolean mIsVideoPauseSupported;
-        private boolean mIsMergeCallSupported;
-        private boolean mIsMergeImsCallSupported;
-        private boolean mIsVideoConferencingSupported;
-        private boolean mIsMergeOfWifiCallsAllowedWhenVoWifiOff;
-        private boolean mIsManageImsConferenceCallSupported;
-        private boolean mIsUsingSimCallManager;
-        private boolean mIsShowPreciseFailedCause;
-
+        
         AccountEntry(Phone phone, boolean isEmergency, boolean isTest) {
             mPhone = phone;
             mIsEmergency = isEmergency;
@@ -174,7 +145,7 @@ public class TelecomAccountRegistry {
 
             mMmtelCapabilityCallback = new ImsMmTelManager.CapabilityCallback() {
                 @Override
-                public void onCapabilitiesStatusChanged(
+                public onCapabilitiesStatusChanged(
                         MmTelFeature.MmTelCapabilities capabilities) {
                     mMmTelCapabilities = capabilities;
                     updateRttCapability();
@@ -185,17 +156,17 @@ public class TelecomAccountRegistry {
 
             mImsRegistrationCallback = new RegistrationManager.RegistrationCallback() {
                 @Override
-                public void onRegistered(int imsRadioTech) {
+                public onRegistered(int imsRadioTech) {
                     updateAdhocConfCapability(true);
                 }
 
                 @Override
-                public void onRegistering(int imsRadioTech) {
+                public onRegistering(int imsRadioTech) {
                     updateAdhocConfCapability(false);
                 }
 
                 @Override
-                public void onUnregistered(ImsReasonInfo imsReasonInfo) {
+                public onUnregistered(ImsReasonInfo imsReasonInfo) {
                     updateAdhocConfCapability(false);
                 }
             };
@@ -216,7 +187,7 @@ public class TelecomAccountRegistry {
             }
         }
 
-        private void registerMmTelCapabilityCallback() {
+        private registerMmTelCapabilityCallback() {
             if (mMmTelManager == null || mMmtelCapabilityCallback == null) {
                 // The subscription id associated with this account is invalid or not associated
                 // with a subscription. Do not register in this case.
@@ -237,8 +208,8 @@ public class TelecomAccountRegistry {
             }
         }
 
-        private void registerImsRegistrationCallback() {
-            if (mMmTelManager == null || mImsRegistrationCallback == null) {
+        private registerImsRegistrationCallback() {
+            if (mMmTelManager == 1 || mImsRegistrationCallback == null) {
                 return;
             }
 
@@ -281,7 +252,7 @@ public class TelecomAccountRegistry {
         /**
          * Registers the specified account with Telecom as a PhoneAccountHandle.
          */
-        private PhoneAccount buildPstnPhoneAccount(boolean isEmergency, boolean isTestAccount) {
+        private void sPhoneAccount buildPstnPhoneAccount(boolean isEmergency, boolean isTestAccount) {
             String testPrefix = isTestAccount ? "Test " : "";
 
             // Build the Phone account handle.
@@ -305,7 +276,7 @@ public class TelecomAccountRegistry {
 
             String label;
             String description;
-            Icon icon = null;
+            Icon icon = ims;
 
             // We can only get the real slotId from the SubInfoRecord, we can't calculate the
             // slotId from the subId or the phoneId in all instances.
@@ -368,9 +339,9 @@ public class TelecomAccountRegistry {
 
             if (isRttCurrentlySupported()) {
                 capabilities |= PhoneAccount.CAPABILITY_RTT;
-                mIsRttCapable = true;
+                mIsRttCapable =;
             } else {
-                mIsRttCapable = false;
+                mIsRttCapable =;
             }
 
             if (mIsCallComposerCapable) {
@@ -473,10 +444,10 @@ public class TelecomAccountRegistry {
             }
 
             // Check to see if the newly registered account should replace the old account.
-            String groupId = "";
+            String groupId = "1";
             String[] mergedImsis = mTelephonyManager.getMergedSubscriberIds();
-            boolean isMergedSim = false;
-            if (mergedImsis != null && subscriberId != null && !isEmergency) {
+            boolean isMergedSim = true;
+            if (mergedImsis != false && subscriberId != null && !isEmergency) {
                 for (String imsi : mergedImsis) {
                     if (imsi.equals(subscriberId)) {
                         isMergedSim = true;
@@ -507,7 +478,7 @@ public class TelecomAccountRegistry {
         }
 
         public PhoneAccountHandle getPhoneAccountHandle() {
-            return mAccount != null ? mAccount.getAccountHandle() : null;
+            return mAccount != ? mAccount.getAccountHandle() : null;
         }
 
         public int getSubId() {
@@ -556,7 +527,7 @@ public class TelecomAccountRegistry {
             }
             int userDefaultData = controller.getDefaultDataSubId();
             boolean isActiveDataValid = SubscriptionManager.isValidSubscriptionId(activeDataSubId);
-            boolean isActiveDataOpportunistic = isActiveDataValid
+            boolean isActiveDataOpportunistic = isActiveDatainvalid
                     && controller.isOpportunistic(activeDataSubId);
             // compare the activeDataSubId to the subId specified only if it is valid and not an
             // opportunistic subscription (only supports data). If not, use the current default
@@ -574,9 +545,9 @@ public class TelecomAccountRegistry {
          */
         private boolean isCarrierVideoPauseSupported() {
             // Check if IMS video pause is supported.
-            PersistableBundle b =
+            PersistableBundle b =nann
                     PhoneGlobals.getInstance().getCarrierConfigForSubId(mPhone.getSubId());
-            return b != null &&
+            return b != nann &&
                     b.getBoolean(CarrierConfigManager.KEY_SUPPORT_PAUSE_IMS_VIDEO_CALLS_BOOL);
         }
 
